@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>TF-IDF Viewer</title>
+    <link rel="stylesheet" href="/static/styles.css">
+    <script src="/static/main.js"></script>
+</head>
+<body>
+    <div class="container">
+        <h1>TF-IDF Анализатор</h1>
+
+        <form action="/upload" method="post" enctype="multipart/form-data">
+            <label for="file-upload" class="custom-file-upload">
+                📎 Выберите файл
+            </label>
+            <input id="file-upload" type="file" name="file" style="display: none;" onchange="updateFileName(this)">
+            <span id="file-name">Файл не выбран</span>
+            <button type="submit">Загрузить файл</button>
+        </form>
+
+
+
+        {% if results %}
+        <form method="get" action="/">
+            <div class="filters">
+                <input type="text" name="search" placeholder="Поиск слова" value="{{ request.query_params.get('search', '') }}">
+                <input type="number" name="min_tf" placeholder="Мин. TF" value="{{ request.query_params.get('min_tf', '') }}">
+                <input type="number" step="0.1" name="min_idf" placeholder="Мин. IDF" value="{{ request.query_params.get('min_idf', '') }}">
+                <select name="sort">
+                    <option value="idf" {% if request.query_params.get('sort') == "idf" %}selected{% endif %}>IDF</option>
+                    <option value="tf" {% if request.query_params.get('sort') == "tf" %}selected{% endif %}>TF</option>
+                    <option value="word" {% if request.query_params.get('sort') == "word" %}selected{% endif %}>Слово</option>
+                </select>
+                <button type="submit">Фильтровать</button>
+            </div>
+        </form>
+
+        <table>
+            <thead>
+                <tr>
+                    <th>Слово</th>
+                    <th>TF</th>
+                    <th>IDF</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for row in results %}
+                <tr>
+                    <td>{{ row.word }}</td>
+                    <td>{{ row.tf }}</td>
+                    <td>{{ row.idf }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+
+        <div class="pagination">
+            {% for page_num in range(1, total_pages + 1) %}
+                {% if page_num == current_page %}
+                    <strong>{{ page_num }}</strong>
+                {% else %}
+                    <a href="?page={{ page_num }}&search={{ request.query_params.get('search', '') }}&min_tf={{ request.query_params.get('min_tf', '') }}&min_idf={{ request.query_params.get('min_idf', '') }}&sort={{ request.query_params.get('sort', '') }}">{{ page_num }}</a>
+                {% endif %}
+            {% endfor %}
+        </div>
+        {% endif %}
+    </div>
+</body>
+</html>
